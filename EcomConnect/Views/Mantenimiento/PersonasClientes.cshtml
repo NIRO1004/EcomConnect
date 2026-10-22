@@ -1,0 +1,88 @@
+﻿
+@using EcomConnect.Models
+@{
+    ViewData["Title"] = "Personas y clientes";
+    var personas = ViewBag.Personas as List<Persona> ?? new List<Persona>();
+    var clientes = ViewBag.Clientes as List<Cliente> ?? new List<Cliente>();
+}
+
+<div class="container py-4">
+    <h2>Personas y clientes</h2>
+    <p class="text-muted">Consulta de registros almacenados en SQL Server.</p>
+
+    <h4 class="mt-4">Personas</h4>
+
+    @if (personas.Count == 0)
+    {
+        <p>No hay personas registradas.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombre</th>
+                        <th>Primer apellido</th>
+                        <th>Segundo apellido</th>
+                        <th>Fecha de nacimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var persona in personas)
+                    {
+                        <tr>
+                            <td>@persona.Cedula</td>
+                            <td>@persona.Nombre</td>
+                            <td>@persona.Apellido1</td>
+                            <td>@persona.Apellido2</td>
+                            <td>@persona.FechaNacimiento.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <h4 class="mt-4">Clientes</h4>
+
+    @if (clientes.Count == 0)
+    {
+        <p>No hay clientes registrados.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Fecha de alta</th>
+                        <th>Fecha de baja</th>
+                        <th>Método de pago</th>
+                        <th>Calificación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cliente in clientes)
+                    {
+                        <tr>
+                            <td>@cliente.IdCliente</td>
+                            <td>@cliente.FechaAlta.ToString("dd/MM/yyyy")</td>
+                            <td>@(cliente.FechaBaja?.ToString("dd/MM/yyyy") ?? "Activo")</td>
+                            <td>@cliente.MetodoPago</td>
+                            <td>@cliente.Calificacion</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <a asp-controller="Mantenimiento"
+       asp-action="Index"
+       class="btn btn-outline-primary mt-3">
+        Volver a mantenimiento
+    </a>
+</div>

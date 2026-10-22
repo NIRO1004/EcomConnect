@@ -1,0 +1,100 @@
+﻿@using EcomConnect.Models
+
+@{
+    ViewData["Title"] = "Preferencias y solicitudes";
+
+    var preferencias = ViewBag.Preferencias as List<Preferencium>
+        ?? new List<Preferencium>();
+
+    var solicitudes = ViewBag.QuejasSolicitudes as List<QuejaSolicitud>
+        ?? new List<QuejaSolicitud>();
+}
+
+<div class="container py-4">
+    <h2>Preferencias y solicitudes</h2>
+    <p class="text-muted">
+        Consulta de preferencias de clientes y solicitudes registradas.
+    </p>
+
+    <h4 class="mt-4">Preferencias de clientes</h4>
+
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>ID del cliente</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (preferencias.Count == 0)
+                {
+                    <tr>
+                        <td colspan="4">No hay preferencias registradas.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var preferencia in preferencias)
+                    {
+                        <tr>
+                            <td>@preferencia.IdPreferencia</td>
+                            <td>@preferencia.Tipo</td>
+                            <td>@preferencia.DescripcionPreferencia</td>
+                            <td>@preferencia.ClienteIdCliente</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h4 class="mt-4">Quejas y solicitudes</h4>
+
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Fecha de registro</th>
+                    <th>Estado</th>
+                    <th>Respuesta</th>
+                    <th>ID del cliente</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (solicitudes.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7">No hay quejas o solicitudes registradas.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var solicitud in solicitudes)
+                    {
+                        <tr>
+                            <td>@solicitud.IdQuejaSolicitud</td>
+                            <td>@solicitud.Tipo</td>
+                            <td>@solicitud.DescripcionQuejasolicitud</td>
+                            <td>@solicitud.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@solicitud.Estado</td>
+                            <td>@solicitud.Respuesta</td>
+                            <td>@solicitud.ClienteIdCliente</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-controller="Mantenimiento"
+       asp-action="Index"
+       class="btn btn-outline-primary">
+        ← Volver a mantenimiento
+    </a>
+</div>

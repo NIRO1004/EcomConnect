@@ -1,64 +1,107 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - EcomConnect</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/EcomConnect.styles.css" asp-append-version="true" />
+
+    <title>@ViewData["Title"] - EcomConnect Solutions</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/EcomConnect.styles.css"
+          asp-append-version="true" />
 </head>
+
 <body>
     <header class="topbar">
-        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-            <span>
-                <strong>EcomConnect<span> Solutions</span></strong>
-                <small>Sistema de pedidos de paquetería</small>
-            </span>
+
+        <a class="brand"
+           asp-controller="Home"
+           asp-action="Index">
+            EcomConnect Solutions
         </a>
 
-        <div class="user-profile">
-            <span class="notification">♧</span>
-            <span>
-                <strong>@ViewData["UserName"]</strong>
-                <small>@ViewData["UserEmail"]</small>
-            </span>
-            <span class="chevron">▼</span>
-        </div>
+        <span class="page-name">
+            Sistema de pedidos de paquetería
+        </span>
+
+        @if (Context.Session.GetString("Usuario") != null)
+        {
+            <form asp-controller="Account"
+                  asp-action="Logout"
+                  method="post"
+                  class="d-inline">
+
+                <button type="submit" class="logout-link">
+                    Cerrar sesión →
+                </button>
+            </form>
+        }
+        else
+        {
+            <a class="logout-link"
+               asp-controller="Account"
+               asp-action="Login">
+                Iniciar sesión →
+            </a>
+        }
 
     </header>
 
     <div class="app-container">
+
         <aside class="sidebar">
             <nav>
-                <a class="nav-link active" asp-controller="Home" asp-action="Index">
-                    <span>Inicio</span> 
+
+                <a class="nav-link"
+                   asp-controller="Home"
+                   asp-action="Index">
+                    Inicio
                 </a>
-                <a class="nav-link active" asp-controller="Home" asp-action="Index">
-                    <span>Pedidos</span>
+
+                @if (Context.Session.GetString("Usuario") != null)
+                {
+                    <a class="nav-link"
+                       asp-controller="Mantenimiento"
+                       asp-action="Index">
+                        Mantenimiento →
+                    </a>
+                }
+
+                <a class="nav-link" href="#">
+                    Pedidos →
                 </a>
-                <a class="nav-link active" asp-controller="Home" asp-action="Index">
-                    <span>Envíos</span>
+
+                <a class="nav-link" href="#">
+                    Envíos →
                 </a>
-                <a class="nav-link active" asp-controller="Home" asp-action="Index">
-                    <span>Perfil</span>
+
+                <a class="nav-link" href="#">
+                    Clientes →
                 </a>
-                <a class="nav-link active" asp-controller="Home" asp-action="Index">
-                    <span>Configuración</span>
-                </a>
+
             </nav>
         </aside>
 
-        <main class="content">
+        <main class="main-content">
             @RenderBody()
         </main>
 
     </div>
+
     <footer class="site-footer">
-        <p>© @DateTime.Now.Year EcomConnect Solutions.</p>
+        <p>© @DateTime.Now.Year EcomConnect Solutions</p>
         <p>Sistema de pedidos de paquetería</p>
     </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

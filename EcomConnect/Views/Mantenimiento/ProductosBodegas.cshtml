@@ -1,0 +1,107 @@
+﻿@using EcomConnect.Models
+
+@{
+    ViewData["Title"] = "Productos y bodegas";
+
+    var productos = ViewBag.Productos as List<Producto>
+        ?? new List<Producto>();
+
+    var bodegas = ViewBag.Bodegas as List<Bodega>
+        ?? new List<Bodega>();
+}
+
+<div class="container py-4">
+
+    <h2 class="mb-2">Productos y bodegas</h2>
+
+    <p class="text-muted mb-4">
+        Consulta de productos, inventario y bodegas registradas.
+    </p>
+
+    <h4 class="mt-4 mb-3">Productos</h4>
+
+    @if (productos.Count == 0)
+    {
+        <div class="alert alert-info">
+            No hay productos registrados.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Cantidad disponible</th>
+                        <th>Punto de reorden</th>
+                        <th>Back order</th>
+                        <th>Precio</th>
+                        <th>ID de bodega</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var producto in productos)
+                    {
+                        <tr>
+                            <td>@producto.IdProducto</td>
+                            <td>@producto.Nombre</td>
+                            <td>@producto.DescripcionProducto</td>
+                            <td>@producto.CantidadDisponible</td>
+                            <td>@producto.PuntoReorden</td>
+                            <td>@(producto.BackOrder != 0 ? "Sí" : "No")</td>
+                            <td>@producto.Precio.ToString("N2")</td>
+                            <td>@producto.BodegaIdBodega</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <h4 class="mt-5 mb-3">Bodegas</h4>
+
+    @if (bodegas.Count == 0)
+    {
+        <div class="alert alert-info">
+            No hay bodegas registradas.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Tiempo de procesamiento (horas)</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var bodega in bodegas)
+                    {
+                        <tr>
+                            <td>@bodega.IdBodega</td>
+                            <td>@bodega.Nombre</td>
+                            <td>@bodega.Ubicacion</td>
+                            <td>@bodega.TiempoProcesamientoHoras</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <a asp-controller="Mantenimiento"
+       asp-action="Index"
+       class="btn btn-outline-primary mt-3">
+        ← Volver a mantenimiento
+    </a>
+
+</div>

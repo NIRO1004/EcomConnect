@@ -1,0 +1,150 @@
+﻿@using EcomConnect.Models
+
+@{
+    ViewData["Title"] = "Pedidos y rastreo";
+    Layout = "_Layout";
+
+    var pedidos = ViewBag.Pedidos as List<Pedido> ?? new List<Pedido>();
+    var rastreos = ViewBag.Rastreos as List<RastreoPedido> ?? new List<RastreoPedido>();
+    var estados = ViewBag.EstadosPedido as List<EstadoPedido> ?? new List<EstadoPedido>();
+    var detalles = ViewBag.DetallesPedido as List<PedidoDetalle> ?? new List<PedidoDetalle>();
+}
+
+<div class="container py-4">
+    <h2>Pedidos y rastreo</h2>
+    <p class="text-muted">
+        Consulta de pedidos, detalles y seguimiento registrados en EcomConnect.
+    </p>
+
+    <h4 class="mt-4">Pedidos registrados</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID del pedido</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>ID del cliente</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (pedidos.Count == 0)
+                {
+                    <tr><td colspan="4">No hay pedidos registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var pedido in pedidos)
+                    {
+                        <tr>
+                            <td>@pedido.IdPedido</td>
+                            <td>@pedido.FechaPedido.ToString("dd/MM/yyyy")</td>
+                            <td>@pedido.Total.ToString("N2")</td>
+                            <td>@pedido.ClienteIdCliente</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h4 class="mt-4">Rastreo de pedidos</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID de rastreo</th>
+                    <th>ID del pedido</th>
+                    <th>Fecha de actualización</th>
+                    <th>ID del estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (rastreos.Count == 0)
+                {
+                    <tr><td colspan="4">No hay rastreos registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var rastreo in rastreos)
+                    {
+                        <tr>
+                            <td>@rastreo.IdRastreo</td>
+                            <td>@rastreo.PedidoIdPedido</td>
+                            <td>@rastreo.FechaActualizacion.ToString("dd/MM/yyyy")</td>
+                            <td>@rastreo.EstadoPedidoIdEstadoPedido</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h4 class="mt-4">Estados de pedido</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID del estado</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (estados.Count == 0)
+                {
+                    <tr><td colspan="2">No hay estados registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var estado in estados)
+                    {
+                        <tr>
+                            <td>@estado.IdEstadoPedido</td>
+                            <td>@estado.DescripcionEstado</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <h4 class="mt-4">Detalles de pedidos</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID del detalle</th>
+                    <th>ID del producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (detalles.Count == 0)
+                {
+                    <tr><td colspan="5">No hay detalles registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var detalle in detalles)
+                    {
+                        <tr>
+                            <td>@detalle.IdPedidoDetalle</td>
+                            <td>@detalle.ProductoIdProducto</td>
+                            <td>@detalle.Cantidad</td>
+                            <td>@detalle.PrecioUnitario.ToString("N2")</td>
+                            <td>@detalle.SubTotal.ToString("N2")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-controller="Mantenimiento"
+       asp-action="Index"
+       class="btn btn-outline-primary">
+        ← Volver a mantenimiento
+    </a>
+</div>

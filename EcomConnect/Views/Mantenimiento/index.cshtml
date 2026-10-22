@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "Mantenimiento";
+    Layout = "_Layout";
+}
+
+<div class="container mantenimiento-page">
+
+    <div class="mantenimiento-header">
+        <h1>Mantenimiento</h1>
+        <p>
+            Administración de la información de EcomConnect Solutions.
+        </p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Personas y clientes -->
+        <div class="col-md-6 col-lg-4">
+            <div class="mantenimiento-card">
+                <div class="card-body">
+                    <h5>Personas y clientes</h5>
+                    <p>
+                        Información de personas, clientes y tipos de persona.
+                    </p>
+
+                    <a asp-controller="Mantenimiento"
+                       asp-action="PersonasClientes"
+                       class="mantenimiento-btn">
+                        Consultar →
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos y bodegas -->
+        <div class="col-md-6 col-lg-4">
+            <div class="mantenimiento-card">
+                <div class="card-body">
+                    <h5>Productos y bodegas</h5>
+                    <p>
+                        Información de productos, inventario y bodegas.
+                    </p>
+
+                    
+                    <a asp-controller="Mantenimiento"
+                       asp-action="ProductosBodegas"
+                       class="mantenimiento-btn">
+                        Consultar →
+                    </a>
+
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Catálogos y estados -->
+        <div class="col-md-6 col-lg-4">
+            <div class="mantenimiento-card">
+                <div class="card-body">
+                    <h5>Catálogos y estados</h5>
+                    <p>
+                        Tipos de contacto, género, direcciones,
+                        estados y métodos de pago.
+                    </p>
+
+                    <a asp-controller="Mantenimiento"
+                       asp-action="CatalogosTipos"
+                       class="mantenimiento-btn">
+                        Consultar →
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Pedidos y rastreo -->
+        <div class="col-md-6 col-lg-4">
+            <div class="mantenimiento-card">
+                <div class="card-body">
+                    <h5>Pedidos y rastreo</h5>
+                    <p>
+                        Información de pedidos, detalles y seguimiento.
+                    </p>
+
+                    <a asp-controller="Mantenimiento"
+                       asp-action="PedidosRastreo"
+                       class="mantenimiento-btn">
+                        Consultar →
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Facturación y pagos -->
+        <div class="col-md-6 col-lg-4">
+            <div class="mantenimiento-card">
+                <div class="card-body">
+                    <h5>Facturación y pagos</h5>
+                    <p>
+                        Facturas, detalles de facturación y métodos de pago.
+                    </p>
+
+                    <a asp-controller="Mantenimiento"
+                       asp-action="FacturacionPagos"
+                       class="mantenimiento-btn">
+                        Consultar →
+                    </a>
+                    >
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferencias y solicitudes -->
+        <div class="col-md-6 col-lg-4">
+            <div class="mantenimiento-card">
+                <div class="card-body">
+                    <h5>Preferencias y solicitudes</h5>
+                    <p>
+                        Preferencias, quejas, promociones,
+                        campañas y segmentos.
+                    </p>
+                    <a asp-controller="Mantenimiento"
+                       asp-action="PreferenciasSolicitudes"
+                       class="mantenimiento-btn">
+                        Consultar →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

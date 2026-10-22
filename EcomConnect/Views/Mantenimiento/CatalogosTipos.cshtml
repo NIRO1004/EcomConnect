@@ -1,0 +1,221 @@
+﻿@using EcomConnect.Models
+
+@{
+    ViewData["Title"] = "Catálogos y tipos";
+    Layout = "_Layout";
+
+    var generos = ViewBag.Generos as List<CatalogoGenero>
+        ?? new List<CatalogoGenero>();
+
+    var tiposPersona = ViewBag.TiposPersona as List<TipoPersona>
+        ?? new List<TipoPersona>();
+
+    var tiposCorreo = ViewBag.TiposCorreo as List<TipoCorreo>
+        ?? new List<TipoCorreo>();
+
+    var tiposDireccion = ViewBag.TiposDireccion as List<TipoDireccion>
+        ?? new List<TipoDireccion>();
+
+    var tiposTelefono = ViewBag.TiposTelefono as List<TipoTelefono>
+        ?? new List<TipoTelefono>();
+
+    var metodosPago = ViewBag.MetodosPago as List<MetodoPago>
+        ?? new List<MetodoPago>();
+}
+
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h2>Catálogos y tipos</h2>
+        <p class="text-muted">
+            Consulta de los catálogos registrados en el sistema EcomConnect.
+        </p>
+    </div>
+
+    <!-- Géneros -->
+    <h4 class="mt-4">Géneros</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (generos.Count == 0)
+                {
+                    <tr><td colspan="2">No hay géneros registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var genero in generos)
+                    {
+                        <tr>
+                            <td>@genero.IdCatalogoGenero</td>
+                            <td>@genero.DescripcionGenero</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tipos de persona -->
+    <h4 class="mt-4">Tipos de persona</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (tiposPersona.Count == 0)
+                {
+                    <tr><td colspan="4">No hay tipos de persona registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var tipo in tiposPersona)
+                    {
+                        <tr>
+                            <td>@tipo.IdtipoPersona</td>
+                            <td>@tipo.Nombre</td>
+                            <td>@tipo.DescripcionTipopersona</td>
+                            <td>@tipo.Estado</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tipos de correo -->
+    <h4 class="mt-4">Tipos de correo</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (tiposCorreo.Count == 0)
+                {
+                    <tr><td colspan="2">No hay tipos de correo registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var tipo in tiposCorreo)
+                    {
+                        <tr>
+                            <td>@tipo.IdTipoCorreo</td>
+                            <td>@tipo.DescripcionCorreo</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tipos de dirección -->
+    <h4 class="mt-4">Tipos de dirección</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (tiposDireccion.Count == 0)
+                {
+                    <tr><td colspan="2">No hay tipos de dirección registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var tipo in tiposDireccion)
+                    {
+                        <tr>
+                            <td>@tipo.IdTipoDireccion</td>
+                            <td>@tipo.DescripcionTipoDireccion</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Tipos de teléfono -->
+    <h4 class="mt-4">Tipos de teléfono</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (tiposTelefono.Count == 0)
+                {
+                    <tr><td colspan="2">No hay tipos de teléfono registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var tipo in tiposTelefono)
+                    {
+                        <tr>
+                            <td>@tipo.IdTipoTelefono</td>
+                            <td>@tipo.DescripcionTipotelefono</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Métodos de pago -->
+    <h4 class="mt-4">Métodos de pago</h4>
+    <div class="table-responsive mb-4">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (metodosPago.Count == 0)
+                {
+                    <tr><td colspan="3">No hay métodos de pago registrados.</td></tr>
+                }
+                else
+                {
+                    @foreach (var metodo in metodosPago)
+                    {
+                        <tr>
+                            <td>@metodo.IdMetodoPago</td>
+                            <td>@metodo.Nombre</td>
+                            <td>@metodo.DescripcionMetodopago</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-controller="Mantenimiento"
+       asp-action="Index"
+       class="btn btn-outline-primary mt-3">
+        ← Volver a mantenimiento
+    </a>
+
+</div>
