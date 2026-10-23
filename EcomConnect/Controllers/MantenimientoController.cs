@@ -553,5 +553,47 @@ namespace EcomConnect.Controllers
         }
 
 
+        [HttpGet]
+        public async Task<IActionResult> HistorialCliente(
+            int idCliente, string cedula, int tipoPersonaId)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction("Login", "Account",
+                    new { returnUrl = "/Mantenimiento/PersonasClientes" });
+            }
+
+            var cliente = await _context.Clientes
+                .Include(c => c.Persona)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c =>
+                    c.IdCliente == idCliente &&
+                    c.PersonaCedula == cedula &&
+                    c.PersonaTipoPersonaIdtipoPersona == tipoPersonaId);
+
+            if (cliente == null)
+                return NotFound();
+
+            var pedidos = await _context.Pedidos
+                .AsNoTracking()
+                .Where(p =>
+                    p.ClienteIdCliente == idCliente &&
+                    p.ClientePersonaCedula == cedula &&
+                    p.ClientePersonaTipoPersonaIdtipoPersona == tipoPersonaId)
+                .Include(p => p.PedidoDetalles)
+                    .ThenInclude(d => d.Producto)
+                .Include(p => p.RastreoPedidos)
+                    .ThenInclude(r => r.EstadoPedidoIdEstadoPedidoNavigation)
+                .OrderByDescending(p => p.FechaPedido)
+                .ToListAsync();
+
+            ViewBag.Cliente = cliente;
+            return View(pedidos);
+        }
+
+
+
     }
 }

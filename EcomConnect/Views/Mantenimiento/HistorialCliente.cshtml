@@ -1,0 +1,167 @@
+﻿@model List<EcomConnect.Models.Pedido>
+@using EcomConnect.Models
+
+@{
+    ViewData["Title"] = "Historial del cliente";
+    var cliente = ViewBag.Cliente as Cliente;
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold" style="color: #0284c7;">
+                Historial de compras
+            </h2>
+            <p class="text-muted mb-0">
+                Consulta los pedidos y productos adquiridos por el cliente.
+            </p>
+        </div>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="PersonasClientes"
+           class="btn btn-outline-secondary">
+            Volver a clientes
+        </a>
+    </div>
+
+    @if (cliente != null)
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Información del cliente</h5>
+
+                <p class="mb-1">
+                    <strong>Nombre:</strong>
+                    @cliente.Persona.Nombre
+                    @cliente.Persona.Apellido1
+                    @cliente.Persona.Apellido2
+                </p>
+
+                <p class="mb-1">
+                    <strong>Cédula:</strong>
+                    @cliente.PersonaCedula
+                </p>
+
+                <p class="mb-0">
+                    <strong>Código de cliente:</strong>
+                    @cliente.IdCliente
+                </p>
+            </div>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            Este cliente todavía no tiene pedidos registrados.
+        </div>
+    }
+    else
+    {
+        <h4 class="fw-bold mb-3">Pedidos registrados</h4>
+
+        @foreach (var pedido in Model)
+        {
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <h5 class="mb-1">
+                                Pedido #@pedido.IdPedido
+                            </h5>
+                            <small class="text-muted">
+                                Fecha: @pedido.FechaPedido.ToString("dd/MM/yyyy")
+                            </small>
+                        </div>
+
+                        <div class="text-end">
+                            <small class="text-muted d-block">Total del pedido</small>
+                            <strong style="color: #0284c7;">
+                                ₡@pedido.Total.ToString("N2")
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Productos comprados</h6>
+
+                    @if (pedido.PedidoDetalles.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-end">Precio unitario</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detalle in pedido.PedidoDetalles)
+                                    {
+                                        <tr>
+                                            <td>@detalle.Producto.Nombre</td>
+                                            <td class="text-center">@detalle.Cantidad</td>
+                                            <td class="text-end">
+                                                ₡@detalle.PrecioUnitario.ToString("N2")
+                                            </td>
+                                            <td class="text-end">
+                                                ₡@detalle.SubTotal.ToString("N2")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">
+                            Este pedido no tiene detalles registrados.
+                        </p>
+                    }
+
+                    <hr />
+
+                    <h6 class="fw-bold mb-3">Seguimiento del pedido</h6>
+
+                    @if (pedido.RastreoPedidos.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha de actualización</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rastreo in pedido.RastreoPedidos.OrderBy(r => r.FechaActualizacion))
+                                    {
+                                        <tr>
+                                            <td>
+                                                @rastreo.FechaActualizacion.ToString("dd/MM/yyyy")
+                                            </td>
+                                            <td>
+                                                @rastreo.EstadoPedidoIdEstadoPedidoNavigation.DescripcionEstado
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">
+                            Este pedido todavía no tiene seguimiento registrado.
+                        </p>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
