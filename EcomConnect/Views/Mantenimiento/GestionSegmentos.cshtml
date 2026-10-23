@@ -1,0 +1,114 @@
+﻿@model List<EcomConnect.Models.Segmento>
+
+@{
+    ViewData["Title"] = "Gestión de segmentos";
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #0284c7;">
+                Gestión de segmentos
+            </h2>
+            <p class="text-muted mb-0">
+                Consulta la clasificación de los clientes registrados.
+            </p>
+        </div>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            Volver a mantenimiento
+        </a>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Mensaje"]
+        </div>
+    }
+
+    @if (TempData["MensajeError"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["MensajeError"]
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0">Segmentos registrados</h5>
+
+            <a asp-controller="Mantenimiento"
+               asp-action="CrearSegmento"
+               class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear segmento
+            </a>
+
+            
+            <a asp-controller="Mantenimiento"
+               asp-action="ClasificacionClientes"
+               class="btn btn-outline-primary">
+                <i class="bi bi-people"></i> Clasificar clientes
+            </a>
+
+        </div>
+
+        <div class="card-body">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info mb-0">
+                    No hay segmentos registrados en el sistema.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Segmento</th>
+                                <th>Descripción</th>
+                                <th>Criterio</th>
+                                <th>Cliente asociado</th>
+                                <th>Cédula</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var segmento in Model)
+                            {
+                                <tr>
+                                    <td>@segmento.IdSegmento</td>
+                                    <td>@segmento.Nombre</td>
+                                    <td>@segmento.DescripcionSegmento</td>
+                                    <td>@segmento.Criterio</td>
+                                    <td>
+                                        @segmento.Cliente.Persona.Nombre
+                                        @segmento.Cliente.Persona.Apellido1
+                                        @segmento.Cliente.Persona.Apellido2
+                                    </td>
+                                    <td>@segmento.ClientePersonaCedula</td>
+                                    <td>
+                                        @if (segmento.Estado != null &&
+                                            System.Text.Encoding.UTF8.GetString(segmento.Estado).Trim() == "1")
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

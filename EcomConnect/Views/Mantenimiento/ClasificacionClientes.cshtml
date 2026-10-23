@@ -1,0 +1,111 @@
+﻿@model List<EcomConnect.Models.ClasificacionClienteViewModel>
+
+@{
+    ViewData["Title"] = "Clasificación de clientes";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #0284c7;">
+                Clasificación de clientes
+            </h2>
+            <p class="text-muted mb-0">
+                Consulta la frecuencia de compra y el monto gastado por cada cliente.
+            </p>
+        </div>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="GestionSegmentos"
+           class="btn btn-outline-secondary">
+            Volver a segmentos
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light py-3">
+            <h5 class="mb-0">Resultados de clasificación</h5>
+        </div>
+
+        <div class="card-body">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info mb-0">
+                    No hay clientes registrados para clasificar.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Cédula</th>
+                                <th>Pedidos realizados</th>
+                                <th>Monto gastado</th>
+                                <th>Frecuencia</th>
+                                <th>Gasto</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cliente in Model)
+                            {
+                                <tr>
+                                    <td>@cliente.NombreCompleto</td>
+                                    <td>@cliente.Cedula</td>
+                                    <td>@cliente.CantidadPedidos</td>
+                                    <td>
+                                        @cliente.MontoGastado.ToString("C2",
+                                                System.Globalization.CultureInfo.GetCultureInfo("es-CR"))
+                                    </td>
+                                    <td>
+                                        @if (cliente.CantidadPedidos >= 5)
+                                        {
+                                            <span class="badge bg-success">
+                                                @cliente.ClasificacionFrecuencia
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @cliente.ClasificacionFrecuencia
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (cliente.MontoGastado >= 100000)
+                                        {
+                                            <span class="badge bg-primary">
+                                                @cliente.ClasificacionGasto
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @cliente.ClasificacionGasto
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <a asp-controller="Mantenimiento"
+                                           asp-action="CrearSegmento"
+                                           asp-route-clienteClave="@($"{cliente.IdCliente}|{cliente.Cedula}|1")"
+                                           class="btn btn-sm btn-primary">
+                                            Asignar segmento
+                                        </a>
+                                    </td>
+
+
+
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

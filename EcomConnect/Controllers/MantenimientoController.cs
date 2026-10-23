@@ -594,6 +594,266 @@ namespace EcomConnect.Controllers
         }
 
 
+        [HttpGet]
+        public async Task<IActionResult> GestionSegmentos()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/GestionSegmentos" });
+            }
+
+            var segmentos = await _context.Segmentos
+                .AsNoTracking()
+                .Include(s => s.Cliente)
+                    .ThenInclude(c => c.Persona)
+                .OrderBy(s => s.Nombre)
+                .ToListAsync();
+
+            return View(segmentos);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> ClasificacionClientes()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/ClasificacionClientes" });
+            }
+
+            var clientes = await _context.Clientes
+                .AsNoTracking()
+                .Include(c => c.Persona)
+                .Include(c => c.Pedidos)
+                .ToListAsync();
+
+            var clasificaciones = clientes.Select(c =>
+            {
+                int cantidadPedidos = c.Pedidos.Count;
+                decimal montoGastado = c.Pedidos.Sum(p => p.Total);
+
+                return new ClasificacionClienteViewModel
+                {
+                    IdCliente = c.IdCliente,
+                    Cedula = c.PersonaCedula,
+                    TipoPersonaId = c.PersonaTipoPersonaIdtipoPersona,
+
+                    NombreCompleto =
+                        $"{c.Persona.Nombre} {c.Persona.Apellido1} {c.Persona.Apellido2}",
+
+                    CantidadPedidos = cantidadPedidos,
+                    MontoGastado = montoGastado,
+
+                    ClasificacionFrecuencia = cantidadPedidos >= 5
+                        ? "Cliente frecuente"
+                        : "Cliente ocasional",
+
+                    ClasificacionGasto = montoGastado >= 100000
+                        ? "Alto gasto"
+                        : "Gasto regular"
+                };
+            })
+            .OrderByDescending(c => c.CantidadPedidos)
+            .ToList();
+
+            return View(clasificaciones);
+        }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> CrearSegmento(string? clienteClave)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login", "Account",
+                    new { returnUrl = "/Mantenimiento/CrearSegmento" });
+            }
+
+            await CargarClientesSegmento();
+
+            if (!((List<Cliente>)ViewBag.Clientes).Any())
+            {
+                TempData["MensajeError"] =
+                    "Debe existir al menos un cliente registrado para crear un segmento.";
+
+                return RedirectToAction(nameof(GestionSegmentos));
+            }
+
+            if (!string.IsNullOrWhiteSpace(clienteClave))
+            {
+                var partes = clienteClave.Split('|');
+
+                if (partes.Length == 3 &&
+                    int.TryParse(partes[0], out int idCliente) &&
+                    !string.IsNullOrWhiteSpace(partes[1]) &&
+                    int.TryParse(partes[2], out int tipoPersonaId))
+                {
+                    string cedula = partes[1];
+
+                    bool clienteExiste = await _context.Clientes.AnyAsync(c =>
+                        c.IdCliente == idCliente &&
+                        c.PersonaCedula == cedula &&
+                        c.PersonaTipoPersonaIdtipoPersona == tipoPersonaId);
+
+                    if (clienteExiste)
+                    {
+                        ViewBag.ClienteClaveSeleccionado =
+                            $"{idCliente}|{cedula}|{tipoPersonaId}";
+                    }
+                }
+            }
+
+            return View();
+        }
+
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearSegmento(
+            string Nombre,
+            string DescripcionSegmento,
+            string Criterio,
+            string Estado,
+            string ClienteClave)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/CrearSegmento" });
+            }
+
+            Nombre = Nombre?.Trim() ?? "";
+            DescripcionSegmento = DescripcionSegmento?.Trim() ?? "";
+            Criterio = Criterio?.Trim() ?? "";
+
+            int idCliente = 0;
+            int tipoPersonaId = 0;
+            string cedula = "";
+
+            if (string.IsNullOrWhiteSpace(Nombre) || Nombre.Length > 500)
+            {
+                ModelState.AddModelError(
+                    nameof(Nombre),
+                    "El nombre es obligatorio y admite hasta 500 caracteres.");
+            }
+
+            if (string.IsNullOrWhiteSpace(DescripcionSegmento) ||
+                DescripcionSegmento.Length > 255)
+            {
+                ModelState.AddModelError(
+                    nameof(DescripcionSegmento),
+                    "La descripción es obligatoria y admite hasta 255 caracteres.");
+            }
+
+            if (string.IsNullOrWhiteSpace(Criterio) || Criterio.Length > 100)
+            {
+                ModelState.AddModelError(
+                    nameof(Criterio),
+                    "El criterio es obligatorio y admite hasta 100 caracteres.");
+            }
+
+            if (Estado != "1" && Estado != "0")
+            {
+                ModelState.AddModelError(
+                    nameof(Estado),
+                    "Seleccione un estado válido.");
+            }
+
+            var partes = (ClienteClave ?? "").Split('|');
+
+            if (partes.Length != 3 ||
+                !int.TryParse(partes[0], out idCliente) ||
+                string.IsNullOrWhiteSpace(partes[1]) ||
+                !int.TryParse(partes[2], out tipoPersonaId))
+            {
+                ModelState.AddModelError(
+                    nameof(ClienteClave),
+                    "Seleccione un cliente válido.");
+            }
+            else
+            {
+                cedula = partes[1];
+
+                bool clienteExiste = await _context.Clientes.AnyAsync(c =>
+                    c.IdCliente == idCliente &&
+                    c.PersonaCedula == cedula &&
+                    c.PersonaTipoPersonaIdtipoPersona == tipoPersonaId);
+
+                if (!clienteExiste)
+                {
+                    ModelState.AddModelError(
+                        nameof(ClienteClave),
+                        "El cliente seleccionado no existe.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await CargarClientesSegmento();
+                return View();
+            }
+
+            var segmento = new Segmento
+            {
+                Nombre = Nombre,
+                DescripcionSegmento = DescripcionSegmento,
+                Criterio = Criterio,
+                Estado = System.Text.Encoding.UTF8.GetBytes(Estado),
+                ClienteIdCliente = idCliente,
+                ClientePersonaCedula = cedula,
+                ClientePersonaTipoPersonaIdtipoPersona = tipoPersonaId
+            };
+
+            try
+            {
+                _context.Segmentos.Add(segmento);
+                await _context.SaveChangesAsync();
+
+                TempData["Mensaje"] =
+                    "El segmento se registró correctamente.";
+
+                return RedirectToAction(nameof(GestionSegmentos));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "No se pudo guardar el segmento. Verifique los datos e inténtelo nuevamente.");
+
+                await CargarClientesSegmento();
+                return View();
+            }
+        }
+
+        private async Task CargarClientesSegmento()
+        {
+            ViewBag.Clientes = await _context.Clientes
+                .AsNoTracking()
+                .Include(c => c.Persona)
+                .OrderBy(c => c.Persona.Nombre)
+                .ToListAsync();
+        }
 
     }
 }
