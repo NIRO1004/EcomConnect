@@ -1,0 +1,138 @@
+﻿@using EcomConnect.Models
+@{
+    ViewData["Title"] = "Registrar cliente";
+
+    var generos = ViewBag.Generos as List<CatalogoGenero>
+        ?? new List<CatalogoGenero>();
+
+    var tiposPersona = ViewBag.TiposPersona as List<TipoPersona>
+        ?? new List<TipoPersona>();
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Registrar cliente</h2>
+        <a asp-controller="Mantenimiento"
+           asp-action="PersonasClientes"
+           class="btn btn-secondary">
+            Volver
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="CrearCliente" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="All"
+                     class="text-danger mb-3"></div>
+
+                <h5 class="mb-3">Datos personales</h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="Cedula" class="form-label">Cédula</label>
+                        <input type="text" id="Cedula" name="Cedula"
+                               class="form-control" maxlength="10"
+                               required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="Nombre" class="form-label">Nombre</label>
+                        <input type="text" id="Nombre" name="Nombre"
+                               class="form-control" maxlength="30"
+                               required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="Apellido1" class="form-label">
+                            Primer apellido
+                        </label>
+                        <input type="text" id="Apellido1" name="Apellido1"
+                               class="form-control" maxlength="30"
+                               required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="Apellido2" class="form-label">
+                            Segundo apellido
+                        </label>
+                        <input type="text" id="Apellido2" name="Apellido2"
+                               class="form-control" maxlength="30"
+                               required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="FechaNacimiento" class="form-label">
+                            Fecha de nacimiento
+                        </label>
+                        <input type="date" id="FechaNacimiento"
+                               name="FechaNacimiento"
+                               class="form-control" required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="CatalogoGeneroIdCatalogoGenero"
+                               class="form-label">Género</label>
+                        <select id="CatalogoGeneroIdCatalogoGenero"
+                                name="CatalogoGeneroIdCatalogoGenero"
+                                class="form-select" required>
+                            <option value="">Seleccione un género</option>
+                            @foreach (var genero in generos)
+                            {
+                                <option value="@genero.IdCatalogoGenero">
+                                    @genero.DescripcionGenero
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="TipoPersonaIdtipoPersona"
+                               class="form-label">Tipo de persona</label>
+                        <select id="TipoPersonaIdtipoPersona"
+                                name="TipoPersonaIdtipoPersona"
+                                class="form-select" required>
+                            <option value="">Seleccione un tipo</option>
+                            @foreach (var tipo in tiposPersona)
+                            {
+                                <option value="@tipo.IdtipoPersona">
+                                    @tipo.Nombre
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <hr />
+
+                <h5 class="mb-3">Datos del cliente</h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="MetodoPago" class="form-label">
+                            Método de pago
+                        </label>
+                        <input type="text" id="MetodoPago" name="MetodoPago"
+                               class="form-control" maxlength="50"
+                               required />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="Calificacion" class="form-label">
+                            Calificación
+                        </label>
+                        <input type="number" id="Calificacion"
+                               name="Calificacion" class="form-control"
+                               min="0" max="9.99" step="0.01"
+                               value="0.00" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Registrar cliente
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,5 +1,17 @@
 ﻿
 @using EcomConnect.Models
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["Mensaje"]
+    </div>
+}
+@if (TempData["MensajeError"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["MensajeError"]
+    </div>
+}
 @{
     ViewData["Title"] = "Personas y clientes";
     var personas = ViewBag.Personas as List<Persona> ?? new List<Persona>();
@@ -8,6 +20,11 @@
 
 <div class="container py-4">
     <h2>Personas y clientes</h2>
+    <a asp-controller="Mantenimiento"
+       asp-action="CrearCliente"
+       class="btn btn-primary mb-3">
+        <i class="bi bi-person-plus"></i> Crear cliente
+    </a>
     <p class="text-muted">Consulta de registros almacenados en SQL Server.</p>
 
     <h4 class="mt-4">Personas</h4>
@@ -62,6 +79,7 @@
                         <th>Fecha de baja</th>
                         <th>Método de pago</th>
                         <th>Calificación</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,6 +91,40 @@
                             <td>@(cliente.FechaBaja?.ToString("dd/MM/yyyy") ?? "Activo")</td>
                             <td>@cliente.MetodoPago</td>
                             <td>@cliente.Calificacion</td>
+
+                            
+                            <td>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <a asp-controller="Mantenimiento"
+                                       asp-action="EditarCliente"
+                                       asp-route-idCliente="@cliente.IdCliente"
+                                       asp-route-cedula="@cliente.PersonaCedula"
+                                       asp-route-tipoPersonaId="@cliente.PersonaTipoPersonaIdtipoPersona"
+                                       class="btn btn-info btn-sm text-white">Editar</a>
+
+                                    <form asp-controller="Mantenimiento"
+                                          asp-action="EliminarCliente"
+                                          method="post"
+                                          class="m-0"
+                                          onsubmit="return confirm('¿Deseas eliminar este cliente?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden" name="idCliente"
+                                               value="@cliente.IdCliente" />
+                                        <input type="hidden" name="cedula"
+                                               value="@cliente.PersonaCedula" />
+                                        <input type="hidden" name="tipoPersonaId"
+                                               value="@cliente.PersonaTipoPersonaIdtipoPersona" />
+
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+
+
                         </tr>
                     }
                 </tbody>
