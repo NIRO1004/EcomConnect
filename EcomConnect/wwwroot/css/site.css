@@ -482,3 +482,30 @@ body {
         border-color: #0ea5e9;
         color: #38bdf8;
     }
+
+
+/* Tablas con scroll independiente */
+.tabla-scroll {
+    max-height: 280px;
+    overflow: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+    /* Mantener los encabezados visibles */
+    .tabla-scroll thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: #f8f9fa;
+    }
+
+    /* Evitar que el encabezado se divida en varias líneas */
+    .tabla-scroll thead th {
+        white-space: nowrap;
+    }
+
+    /* Conservar un ancho mínimo para tablas con muchas columnas */
+    .tabla-scroll table {
+        margin-bottom: 0;
+    }
