@@ -1,0 +1,102 @@
+﻿@model IEnumerable<EcomConnect.Models.Promocion>
+
+@{
+    ViewData["Title"] = "Gestión de promociones";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h2>Gestión de promociones</h2>
+            <p class="text-muted mb-0">
+                Consulta y administra las promociones disponibles.
+            </p>
+        </div>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="CrearPromocion"
+           class="btn btn-primary">
+            Registrar promoción
+        </a>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Mensaje"]
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No hay promociones registradas.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Descuento</th>
+                        <th>Fecha de inicio</th>
+                        <th>Fecha de finalización</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var promocion in Model)
+                    {
+                        <tr>
+                            <td>@promocion.Nombre</td>
+                            <td>@promocion.DescripcionPromocion</td>
+                            <td>@promocion.Descuento.ToString("0.##")%</td>
+                            <td>@promocion.FechaInicio.ToString("dd/MM/yyyy")</td>
+                            <td>@promocion.FechaFin.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (promocion.Estado != null
+                                    && promocion.Estado.Length > 0
+                                    && promocion.Estado[0] == 1)
+                                {
+                                    <span class="badge bg-success">Activa</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactiva</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Mantenimiento"
+                                   asp-action="EditarPromocion"
+                                   asp-route-id="@promocion.IdPromocion"
+                                   class="btn btn-sm btn-warning">
+                                    Editar
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <a asp-controller="Mantenimiento"
+           asp-action="GestionCampanas"
+           class="btn btn-secondary">
+            Volver a campañas
+        </a>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="PreferenciasSolicitudes"
+           class="btn btn-outline-primary">
+            Volver a preferencias y solicitudes
+        </a>
+    </div>
+
+</div>

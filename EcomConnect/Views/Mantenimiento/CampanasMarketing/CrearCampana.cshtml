@@ -1,0 +1,118 @@
+﻿@using EcomConnect.Models
+@{
+    ViewData["Title"] = "Registrar campaña";
+    var promociones = ViewBag.Promociones as List<Promocion>
+        ?? new List<Promocion>();
+    var clientes = ViewBag.Clientes as List<Cliente>
+        ?? new List<Cliente>();
+}
+
+<div class="container mt-4">
+    <h2>Registrar campaña de marketing</h2>
+    <p class="text-muted">
+        Complete los datos para registrar una nueva campaña.
+    </p>
+
+    <form asp-controller="Mantenimiento"
+          asp-action="CrearCampana"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label for="Nombre" class="form-label">Nombre de la campaña</label>
+            <input type="text" id="Nombre" name="Nombre"
+                   class="form-control" maxlength="200" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="DescripcionCampanamarketing" class="form-label">
+                Descripción
+            </label>
+            <textarea id="DescripcionCampanamarketing"
+                      name="DescripcionCampanamarketing"
+                      class="form-control" maxlength="510"
+                      rows="3" required></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="FechaInicio" class="form-label">
+                    Fecha de inicio
+                </label>
+                <input type="date" id="FechaInicio" name="FechaInicio"
+                       class="form-control" required />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label for="FechaFin" class="form-label">
+                    Fecha de finalización
+                </label>
+                <input type="date" id="FechaFin" name="FechaFin"
+                       class="form-control" required />
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="PromocionIdPromocion" class="form-label">
+                Promoción
+            </label>
+            <select id="PromocionIdPromocion"
+                    name="PromocionIdPromocion"
+                    class="form-select" required>
+                <option value="">Seleccione una promoción</option>
+                @foreach (var promocion in promociones)
+                {
+                    <option value="@promocion.IdPromocion">
+                        @promocion.Nombre - @promocion.Descuento.ToString("0.##")%
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="ClienteClave" class="form-label">Cliente</label>
+            <select id="ClienteClave" name="ClienteClave"
+                    class="form-select" required>
+                <option value="">Seleccione un cliente</option>
+                @foreach (var cliente in clientes)
+                {
+                    <option value="@($"{cliente.IdCliente}|{cliente.PersonaCedula}|{cliente.PersonaTipoPersonaIdtipoPersona}")">
+                        @cliente.Persona.Nombre @cliente.Persona.Apellido1
+                        - @cliente.PersonaCedula
+                    </option>
+                }
+            </select>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                Registrar campaña
+            </button>
+            <a asp-controller="Mantenimiento"
+               asp-action="GestionCampanas"
+               class="btn btn-secondary">
+                Cancelar
+            </a>
+        </div>
+    </form>
+
+    
+    
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        <a asp-controller="Mantenimiento"
+           asp-action="GestionCampanas"
+           class="btn btn-secondary">
+            Volver a campañas
+        </a>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="PreferenciasSolicitudes"
+           class="btn btn-outline-primary">
+            Volver a preferencias y solicitudes
+        </a>
+    </div>
+
+
+
+</div>

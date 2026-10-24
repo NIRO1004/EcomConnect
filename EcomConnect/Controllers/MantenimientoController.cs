@@ -2,6 +2,7 @@
 using EcomConnect.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace EcomConnect.Controllers
 {
@@ -1083,6 +1084,368 @@ namespace EcomConnect.Controllers
                 .OrderBy(c => c.Persona.Nombre)
                 .ToListAsync();
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> CrearCampana()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/CrearCampana" });
+            }
+
+            ViewBag.Promociones = await _context.Promocions
+                .AsNoTracking()
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+
+            ViewBag.Clientes = await _context.Clientes
+                .AsNoTracking()
+                .Include(c => c.Persona)
+                .OrderBy(c => c.Persona.Nombre)
+                .ToListAsync();
+
+            return View("~/Views/Mantenimiento/CampanasMarketing/CrearCampana.cshtml"); ;
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearCampana(
+            string Nombre,
+            string DescripcionCampanamarketing,
+            DateOnly FechaInicio,
+            DateOnly FechaFin,
+            int PromocionIdPromocion,
+            string ClienteClave)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/CrearCampana" });
+            }
+
+            Nombre = Nombre?.Trim() ?? "";
+            DescripcionCampanamarketing =
+                DescripcionCampanamarketing?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(Nombre) ||
+                string.IsNullOrWhiteSpace(DescripcionCampanamarketing))
+            {
+                ModelState.AddModelError("", "Complete todos los campos.");
+            }
+
+            if (FechaFin < FechaInicio)
+            {
+                ModelState.AddModelError(
+                    nameof(FechaFin),
+                    "La fecha de finalización no puede ser anterior a la fecha de inicio.");
+            }
+
+            var partes = (ClienteClave ?? "").Split('|');
+
+            int idCliente = 0;
+            int tipoPersonaId = 0;
+            string cedula = "";
+
+            if (partes.Length != 3 ||
+                !int.TryParse(partes[0], out idCliente) ||
+                !int.TryParse(partes[2], out tipoPersonaId) ||
+                string.IsNullOrWhiteSpace(partes[1]))
+            {
+                ModelState.AddModelError(
+                    nameof(ClienteClave), "Seleccione un cliente válido.");
+            }
+            else
+            {
+                cedula = partes[1];
+
+                bool clienteExiste = await _context.Clientes.AnyAsync(c =>
+                    c.IdCliente == idCliente &&
+                    c.PersonaCedula == cedula &&
+                    c.PersonaTipoPersonaIdtipoPersona == tipoPersonaId);
+
+                if (!clienteExiste)
+                {
+                    ModelState.AddModelError(
+                        nameof(ClienteClave), "El cliente seleccionado no existe.");
+                }
+            }
+
+            var promocion = await _context.Promocions
+                .FirstOrDefaultAsync(p => p.IdPromocion == PromocionIdPromocion);
+
+            if (promocion == null)
+            {
+                ModelState.AddModelError(
+                    nameof(PromocionIdPromocion),
+                    "Seleccione una promoción válida.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Promociones = await _context.Promocions
+                    .AsNoTracking()
+                    .OrderBy(p => p.Nombre)
+                    .ToListAsync();
+
+                ViewBag.Clientes = await _context.Clientes
+                    .AsNoTracking()
+                    .Include(c => c.Persona)
+                    .OrderBy(c => c.Persona.Nombre)
+                    .ToListAsync();
+
+                return View("~/Views/Mantenimiento/CampanasMarketing/CrearCampana.cshtml");
+            }
+
+            var campana = new CampanaMarketing
+            {
+                Nombre = Nombre,
+                DescripcionCampanamarketing = DescripcionCampanamarketing,
+                FechaInicio = FechaInicio,
+                FechaFin = FechaFin,
+                Estado = Encoding.UTF8.GetBytes(
+                    FechaInicio > DateOnly.FromDateTime(DateTime.Today)
+                        ? "P"
+                        : FechaFin < DateOnly.FromDateTime(DateTime.Today)
+                            ? "F"
+                            : "A"),
+                PromocionIdPromocion = PromocionIdPromocion,
+                ClienteIdCliente = idCliente,
+                ClientePersonaCedula = cedula,
+                ClientePersonaTipoPersonaIdtipoPersona = tipoPersonaId
+            };
+
+            _context.CampanaMarketings.Add(campana);
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "La campaña se registró correctamente.";
+
+            return RedirectToAction(nameof(GestionCampanas));
+        }
+
+
+        public async Task<IActionResult> GestionCampanas()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/GestionCampanas" });
+            }
+
+            var campanas = await _context.CampanaMarketings
+                .AsNoTracking()
+                .Include(c => c.PromocionIdPromocionNavigation)
+                .Include(c => c.Cliente)
+                    .ThenInclude(c => c.Persona)
+                .OrderByDescending(c => c.FechaInicio)
+                .ToListAsync();
+
+            return View("~/Views/Mantenimiento/CampanasMarketing/Index.cshtml", campanas);
+        }
+
+
+        public async Task<IActionResult> GestionPromociones()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction("Login", "Account",
+                    new { returnUrl = "/Mantenimiento/GestionPromociones" });
+            }
+
+            var promociones = await _context.Promocions
+                .AsNoTracking()
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+
+            return View("/Views/Mantenimiento/CampanasMarketing/Promociones.cshtml", promociones);
+        }
+
+        [HttpGet]
+        public IActionResult CrearPromocion()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction("Login", "Account",
+                    new { returnUrl = "/Mantenimiento/CrearPromocion" });
+            }
+
+            return View("/Views/Mantenimiento/CampanasMarketing/CrearPromocion.cshtml");
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearPromocion(
+            string Nombre,
+            string DescripcionPromocion,
+            decimal Descuento,
+            DateOnly FechaInicio,
+            DateOnly FechaFin,
+            int Estado)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            Nombre = (Nombre ?? "").Trim();
+            DescripcionPromocion = (DescripcionPromocion ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(Nombre) ||
+                string.IsNullOrWhiteSpace(DescripcionPromocion))
+            {
+                ViewBag.Error = "El nombre y la descripción son obligatorios.";
+                return View("/Views/Mantenimiento/CampanasMarketing/CrearPromocion.cshtml");
+            }
+
+            if (Descuento <= 0 || Descuento > 100)
+            {
+                ViewBag.Error = "El descuento debe ser mayor que 0 y no superar el 100%.";
+                return View("/Views/Mantenimiento/CampanasMarketing/CrearPromocion.cshtml");
+            }
+
+            if (FechaFin < FechaInicio)
+            {
+                ViewBag.Error = "La fecha de finalización no puede ser anterior a la fecha de inicio.";
+                return View("/Views/Mantenimiento/CampanasMarketing/CrearPromocion.cshtml");
+            }
+
+            if (Estado != 0 && Estado != 1)
+            {
+                ViewBag.Error = "El estado seleccionado no es válido.";
+                return View("/Views/Mantenimiento/CampanasMarketing/CrearPromocion.cshtml");
+            }
+
+            var promocion = new Promocion
+            {
+                Nombre = Nombre,
+                DescripcionPromocion = DescripcionPromocion,
+                Descuento = Descuento,
+                FechaInicio = FechaInicio,
+                FechaFin = FechaFin,
+                Estado = new byte[] { (byte)Estado }
+            };
+
+            _context.Promocions.Add(promocion);
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "La promoción se registró correctamente.";
+
+            return RedirectToAction(nameof(GestionPromociones));
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> EditarPromocion(int id)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var promocion = await _context.Promocions
+                .FirstOrDefaultAsync(p => p.IdPromocion == id);
+
+            if (promocion == null)
+            {
+                return NotFound();
+            }
+
+            return View(
+                "/Views/Mantenimiento/CampanasMarketing/EditarPromocion.cshtml",
+                promocion);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditarPromocion(
+            int id,
+            string Nombre,
+            string DescripcionPromocion,
+            decimal Descuento,
+            DateOnly FechaInicio,
+            DateOnly FechaFin,
+            int Estado)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var promocion = await _context.Promocions
+                .FirstOrDefaultAsync(p => p.IdPromocion == id);
+
+            if (promocion == null)
+            {
+                return NotFound();
+            }
+
+            Nombre = (Nombre ?? "").Trim();
+            DescripcionPromocion = (DescripcionPromocion ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(Nombre) ||
+                string.IsNullOrWhiteSpace(DescripcionPromocion))
+            {
+                ViewBag.Error = "El nombre y la descripción son obligatorios.";
+            }
+            else if (Descuento <= 0 || Descuento > 100)
+            {
+                ViewBag.Error = "El descuento debe ser mayor que 0 y no superar el 100%.";
+            }
+            else if (FechaFin < FechaInicio)
+            {
+                ViewBag.Error = "La fecha de finalización no puede ser anterior al inicio.";
+            }
+            else if (Estado != 0 && Estado != 1)
+            {
+                ViewBag.Error = "El estado seleccionado no es válido.";
+            }
+
+            if (ViewBag.Error != null)
+            {
+                return View(
+                    "/Views/Mantenimiento/CampanasMarketing/EditarPromocion.cshtml",
+                    promocion);
+            }
+
+            promocion.Nombre = Nombre;
+            promocion.DescripcionPromocion = DescripcionPromocion;
+            promocion.Descuento = Descuento;
+            promocion.FechaInicio = FechaInicio;
+            promocion.FechaFin = FechaFin;
+            promocion.Estado = new byte[] { (byte)Estado };
+
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "La promoción se actualizó correctamente.";
+
+            return RedirectToAction(nameof(GestionPromociones));
+        }
+
 
     }
 }

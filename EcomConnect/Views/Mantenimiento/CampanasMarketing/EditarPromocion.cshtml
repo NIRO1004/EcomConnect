@@ -1,0 +1,97 @@
+﻿@model EcomConnect.Models.Promocion
+
+@{
+    ViewData["Title"] = "Editar promoción";
+    int estadoActual = Model.Estado != null
+        && Model.Estado.Length > 0
+        && Model.Estado[0] == 1 ? 1 : 0;
+}
+
+<div class="container py-4">
+    <h2>Editar promoción</h2>
+    <p class="text-muted">Modifique los datos de la promoción seleccionada.</p>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">@ViewBag.Error</div>
+    }
+
+    <form asp-controller="Mantenimiento"
+          asp-action="EditarPromocion"
+          asp-route-id="@Model.IdPromocion"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="id" value="@Model.IdPromocion" />
+
+        <div class="mb-3">
+            <label class="form-label" for="Nombre">Nombre</label>
+            <input class="form-control"
+                   id="Nombre"
+                   name="Nombre"
+                   value="@Model.Nombre"
+                   maxlength="200"
+                   required />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="DescripcionPromocion">Descripción</label>
+            <textarea class="form-control"
+                      id="DescripcionPromocion"
+                      name="DescripcionPromocion"
+                      rows="3"
+                      maxlength="510"
+                      required>@Model.DescripcionPromocion</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="Descuento">Descuento (%)</label>
+            <input class="form-control"
+                   type="number"
+                   id="Descuento"
+                   name="Descuento"
+                   value="@Model.Descuento.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                   min="0.01"
+                   max="100"
+                   step="0.01"
+                   required />
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="FechaInicio">Fecha de inicio</label>
+                <input class="form-control"
+                       type="date"
+                       id="FechaInicio"
+                       name="FechaInicio"
+                       value="@Model.FechaInicio.ToString("yyyy-MM-dd")"
+                       required />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="FechaFin">Fecha de finalización</label>
+                <input class="form-control"
+                       type="date"
+                       id="FechaFin"
+                       name="FechaFin"
+                       value="@Model.FechaFin.ToString("yyyy-MM-dd")"
+                       required />
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label" for="Estado">Estado</label>
+            <select class="form-select" id="Estado" name="Estado" required>
+                <option value="1" selected="@(estadoActual == 1)">Activa</option>
+                <option value="0" selected="@(estadoActual == 0)">Inactiva</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="GestionPromociones"
+           class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

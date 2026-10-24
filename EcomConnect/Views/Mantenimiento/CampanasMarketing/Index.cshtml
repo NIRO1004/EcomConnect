@@ -1,0 +1,107 @@
+﻿@model IEnumerable<EcomConnect.Models.CampanaMarketing>
+@using System.Text
+
+@{
+    ViewData["Title"] = "Campañas de marketing";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Campañas de marketing</h2>
+            <p class="text-muted">
+                Consulta y administra las campañas registradas.
+            </p>
+        </div>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="CrearCampana"
+           class="btn btn-primary">
+            Registrar campaña
+        </a>
+    </div>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Mensaje"]
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No hay campañas de marketing registradas.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Inicio</th>
+                        <th>Finalización</th>
+                        <th>Promoción</th>
+                        <th>Cliente</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var campana in Model)
+                    {
+                        <tr>
+                            <td>@campana.Nombre</td>
+                            <td>@campana.DescripcionCampanamarketing</td>
+                            <td>@campana.FechaInicio.ToString("dd/MM/yyyy")</td>
+                            <td>@campana.FechaFin.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @campana.PromocionIdPromocionNavigation.Nombre
+                            </td>
+                            <td>
+                                @campana.Cliente.Persona.Nombre
+                                @campana.Cliente.Persona.Apellido1
+                            </td>
+                            <td>
+                                @{
+                                    var estado = Encoding.UTF8
+                                        .GetString(campana.Estado).Trim();
+                                }
+
+                                @switch (estado)
+                                {
+                                    case "A":
+                                        <span class="badge bg-success">Activa</span>
+                                        break;
+                                    case "P":
+                                        <span class="badge bg-warning text-dark">Pendiente</span>
+                                        break;
+                                    case "F":
+                                        <span class="badge bg-secondary">Finalizada</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-light text-dark">
+                                            @estado
+                                        </span>
+                                        break;
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="mt-4 pt-2">
+            <a asp-controller="Mantenimiento"
+               asp-action="PreferenciasSolicitudes"
+               class="btn btn-outline-primary">
+                ← Volver a preferencias y solicitudes
+            </a>
+        </div>
+
+    }
+</div>
