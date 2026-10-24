@@ -1,0 +1,245 @@
+﻿@using EcomConnect.Models
+@{
+    ViewData["Title"] = "Registrar pedido";
+    Layout = "_Layout";
+
+    var clientes = ViewBag.Clientes as List<Cliente> ?? new List<Cliente>();
+    var productos = ViewBag.Productos as List<Producto> ?? new List<Producto>();
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h2>Registrar pedido</h2>
+        <p class="text-muted">
+            Completa los datos para registrar un pedido y generar su rastreo.
+        </p>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <div asp-validation-summary="All"></div>
+                </div>
+            }
+
+            @if (!clientes.Any())
+            {
+                <div class="alert alert-warning">
+                    No hay clientes registrados. Registra un cliente antes de crear un pedido.
+                </div>
+            }
+
+            @if (!productos.Any())
+            {
+                <div class="alert alert-warning">
+                    No hay productos con existencias disponibles.
+                </div>
+            }
+
+            <form asp-controller="Mantenimiento"
+                  asp-action="CrearPedido"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <h5 class="mb-3">Información del cliente</h5>
+
+                <div class="mb-4">
+                    <label for="ClienteIdCliente" class="form-label">
+                        Cliente
+                    </label>
+
+                    <select id="ClienteIdCliente"
+                            name="ClienteIdCliente"
+                            class="form-select"
+                            required>
+                        <option value="">Seleccione un cliente</option>
+
+                        @foreach (var cliente in clientes)
+                        {
+                            <option value="@cliente.IdCliente"
+                                    data-cedula="@cliente.PersonaCedula"
+                                    data-tipo="@cliente.PersonaTipoPersonaIdtipoPersona">
+                                Cliente #@cliente.IdCliente - @cliente.PersonaCedula
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <input type="hidden"
+                       id="ClientePersonaCedula"
+                       name="ClientePersonaCedula" />
+
+                <input type="hidden"
+                       id="ClientePersonaTipoPersonaIdtipoPersona"
+                       name="ClientePersonaTipoPersonaIdtipoPersona" />
+
+                <hr />
+
+                <h5 class="mb-3">Información del producto</h5>
+
+                <div class="mb-3">
+                    <label for="ProductoIdProducto" class="form-label">
+                        Producto
+                    </label>
+
+                    <select id="ProductoIdProducto"
+                            name="ProductoIdProducto"
+                            class="form-select"
+                            required>
+                        <option value="">Seleccione un producto</option>
+
+                        @foreach (var producto in productos)
+                        {
+                            <option value="@producto.IdProducto"
+                                    data-bodega="@producto.BodegaIdBodega"
+                                    data-precio="@producto.Precio"
+                                    data-cantidad="@producto.CantidadDisponible">
+                                @producto.Nombre -
+                                ₡@producto.Precio.ToString("N2") -
+                                Existencias: @producto.CantidadDisponible
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <input type="hidden"
+                       id="ProductoBodegaIdBodega"
+                       name="ProductoBodegaIdBodega" />
+
+                <div class="mb-3">
+                    <label for="Cantidad" class="form-label">
+                        Cantidad
+                    </label>
+
+                    <input type="number"
+                           id="Cantidad"
+                           name="Cantidad"
+                           class="form-control"
+                           min="1"
+                           value="1"
+                           required />
+                    <small id="existencias" class="text-muted"></small>
+                </div>
+
+                <div class="rounded bg-light p-3 mb-4">
+                    <div class="d-flex justify-content-between">
+                        <span>Precio unitario:</span>
+                        <strong id="precioUnitario">₡0,00</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-2">
+                        <span>Total del pedido:</span>
+                        <strong id="totalPedido">₡0,00</strong>
+                    </div>
+
+                    <small class="text-muted">
+                        El total se calcula según el producto y la cantidad seleccionados.
+                    </small>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="submit"
+                            class="btn btn-primary"
+                            disabled="@(!clientes.Any() || !productos.Any())">
+                        <i class="bi bi-check-circle"></i>
+                        Registrar pedido
+                    </button>
+
+                    <a asp-controller="Mantenimiento"
+                       asp-action="PedidosRastreo"
+                       class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const clienteSelect = document.getElementById("ClienteIdCliente");
+        const cedulaInput = document.getElementById("ClientePersonaCedula");
+        const tipoInput = document.getElementById("ClientePersonaTipoPersonaIdtipoPersona");
+
+        const productoSelect = document.getElementById("ProductoIdProducto");
+        const bodegaInput = document.getElementById("ProductoBodegaIdBodega");
+        const cantidadInput = document.getElementById("Cantidad");
+
+        const precioUnitario = document.getElementById("precioUnitario");
+        const totalPedido = document.getElementById("totalPedido");
+        const existencias = document.getElementById("existencias");
+
+        let precioActual = 0;
+        let cantidadDisponible = 0;
+
+        const formatoColones = valor =>
+            new Intl.NumberFormat("es-CR", {
+                style: "currency",
+                currency: "CRC"
+            }).format(valor);
+
+        function actualizarCliente() {
+            const opcion = clienteSelect.selectedOptions[0];
+
+            cedulaInput.value = opcion?.dataset.cedula || "";
+            tipoInput.value = opcion?.dataset.tipo || "";
+        }
+
+        function actualizarProducto() {
+            const opcion = productoSelect.selectedOptions[0];
+
+            precioActual = Number(opcion?.dataset.precio || 0);
+            cantidadDisponible = Number(opcion?.dataset.cantidad || 0);
+
+            bodegaInput.value = opcion?.dataset.bodega || "";
+
+            cantidadInput.max = cantidadDisponible;
+
+            if (Number(cantidadInput.value) > cantidadDisponible) {
+                cantidadInput.value = cantidadDisponible > 0
+                    ? cantidadDisponible
+                    : 1;
+            }
+
+            precioUnitario.textContent = formatoColones(precioActual);
+
+            existencias.textContent = opcion?.value
+                ? `Existencias disponibles: ${cantidadDisponible}`
+                : "";
+
+            actualizarTotal();
+        }
+
+        function actualizarTotal() {
+            const cantidad = Number(cantidadInput.value || 0);
+            totalPedido.textContent = formatoColones(precioActual * cantidad);
+        }
+
+        clienteSelect.addEventListener("change", actualizarCliente);
+        productoSelect.addEventListener("change", actualizarProducto);
+        cantidadInput.addEventListener("input", actualizarTotal);
+
+        document.querySelector("form").addEventListener("submit", function (event) {
+            const cantidad = Number(cantidadInput.value);
+
+            actualizarCliente();
+
+            if (!clienteSelect.value ||
+                !productoSelect.value ||
+                !Number.isInteger(cantidad) ||
+                cantidad < 1 ||
+                cantidad > cantidadDisponible) {
+                event.preventDefault();
+                alert("Verifica el cliente, el producto y la cantidad disponible.");
+            }
+        });
+
+        actualizarCliente();
+        actualizarProducto();
+    </script>
+}

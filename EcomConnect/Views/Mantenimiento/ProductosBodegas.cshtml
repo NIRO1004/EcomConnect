@@ -18,7 +18,13 @@
         Consulta de productos, inventario y bodegas registradas.
     </p>
 
-    <h4 class="mt-4 mb-3">Productos</h4>
+    <div class="mb-3">
+        <a asp-controller="Mantenimiento"
+           asp-action="CrearProducto"
+           class="btn btn-primary">
+            Registrar producto
+        </a>
+    </div>
 
     @if (productos.Count == 0)
     {
@@ -62,7 +68,13 @@
         </div>
     }
 
-    <h4 class="mt-5 mb-3">Bodegas</h4>
+    <div class="mb-3">
+        <a asp-controller="Mantenimiento"
+           asp-action="CrearBodega"
+           class="btn btn-primary">
+            Registrar bodega
+        </a>
+    </div>
 
     @if (bodegas.Count == 0)
     {

@@ -435,6 +435,261 @@ namespace EcomConnect.Controllers
         }
 
 
+        [HttpGet]
+        public async Task<IActionResult> CrearBodega()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+                return RedirectToAction("Login", "Account");
+
+            return View("~/Views/Mantenimiento/CrearBodega.cshtml");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearBodega(
+            string Nombre,
+            string Ubicacion,
+            int TiempoProcesamientoHoras)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+                return RedirectToAction("Login", "Account");
+
+            Nombre = Nombre.Trim();
+            Ubicacion = Ubicacion.Trim();
+
+            if (string.IsNullOrWhiteSpace(Nombre) ||
+                string.IsNullOrWhiteSpace(Ubicacion) ||
+                TiempoProcesamientoHoras < 0)
+            {
+                ModelState.AddModelError("", "Verifica los datos de la bodega.");
+                return View("~/Views/Mantenimiento/CrearBodega.cshtml");
+            }
+
+            var bodega = new Bodega
+            {
+                Nombre = Nombre,
+                Ubicacion = Ubicacion,
+                TiempoProcesamientoHoras = TiempoProcesamientoHoras
+            };
+
+            _context.Bodegas.Add(bodega);
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "La bodega se registró correctamente.";
+            return RedirectToAction(nameof(ProductosBodegas));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CrearProducto()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+                return RedirectToAction("Login", "Account");
+
+            ViewBag.Bodegas = await _context.Bodegas
+                .AsNoTracking()
+                .OrderBy(b => b.Nombre)
+                .ToListAsync();
+
+            return View("~/Views/Mantenimiento/CrearProducto.cshtml");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearProducto(
+            string Nombre,
+            string DescripcionProducto,
+            int CantidadDisponible,
+            int PuntoReorden,
+            short BackOrder,
+            decimal Precio,
+            int BodegaIdBodega)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+                return RedirectToAction("Login", "Account");
+
+            Nombre = Nombre.Trim();
+            DescripcionProducto = DescripcionProducto.Trim();
+
+            var bodegaExiste = await _context.Bodegas
+                .AnyAsync(b => b.IdBodega == BodegaIdBodega);
+
+            if (string.IsNullOrWhiteSpace(Nombre) ||
+                string.IsNullOrWhiteSpace(DescripcionProducto) ||
+                CantidadDisponible < 0 ||
+                PuntoReorden < 0 ||
+                Precio < 0 ||
+                (BackOrder != 0 && BackOrder != 1) ||
+                !bodegaExiste)
+            {
+                ModelState.AddModelError("", "Verifica los datos del producto.");
+                ViewBag.Bodegas = await _context.Bodegas
+                    .AsNoTracking()
+                    .OrderBy(b => b.Nombre)
+                    .ToListAsync();
+
+                return View("~/Views/Mantenimiento/CrearProducto.cshtml");
+            }
+
+            var producto = new Producto
+            {
+                Nombre = Nombre,
+                DescripcionProducto = DescripcionProducto,
+                CantidadDisponible = CantidadDisponible,
+                PuntoReorden = PuntoReorden,
+                BackOrder = BackOrder,
+                Precio = Precio,
+                BodegaIdBodega = BodegaIdBodega
+            };
+
+            _context.Productos.Add(producto);
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "El producto se registró correctamente.";
+            return RedirectToAction(nameof(ProductosBodegas));
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> CrearPedido()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+                return RedirectToAction("Login", "Account");
+
+            ViewBag.Clientes = await _context.Clientes
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.Productos = await _context.Productos
+                .AsNoTracking()
+                .Include(p => p.BodegaIdBodegaNavigation)
+                .Where(p => p.CantidadDisponible > 0)
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+
+            return View("~/Views/Mantenimiento/CrearPedido.cshtml");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearPedido(
+            int ClienteIdCliente,
+            string ClientePersonaCedula,
+            int ClientePersonaTipoPersonaIdtipoPersona,
+            int ProductoIdProducto,
+            int ProductoBodegaIdBodega,
+            int Cantidad)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+                return RedirectToAction("Login", "Account");
+
+            var cliente = await _context.Clientes
+                .FirstOrDefaultAsync(c =>
+                    c.IdCliente == ClienteIdCliente &&
+                    c.PersonaCedula == ClientePersonaCedula &&
+                    c.PersonaTipoPersonaIdtipoPersona ==
+                        ClientePersonaTipoPersonaIdtipoPersona);
+
+            var producto = await _context.Productos
+                .FirstOrDefaultAsync(p =>
+                    p.IdProducto == ProductoIdProducto &&
+                    p.BodegaIdBodega == ProductoBodegaIdBodega);
+
+            if (cliente == null || producto == null ||
+                Cantidad <= 0 || producto.CantidadDisponible < Cantidad)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Verifica el cliente, el producto y la cantidad disponible.");
+
+                ViewBag.Clientes = await _context.Clientes
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                ViewBag.Productos = await _context.Productos
+                    .AsNoTracking()
+                    .Include(p => p.BodegaIdBodegaNavigation)
+                    .Where(p => p.CantidadDisponible > 0)
+                    .OrderBy(p => p.Nombre)
+                    .ToListAsync();
+
+                return View("~/Views/Mantenimiento/CrearPedido.cshtml");
+            }
+
+            var fecha = DateOnly.FromDateTime(DateTime.Today);
+            var subtotal = producto.Precio * Cantidad;
+
+            var pedido = new Pedido
+            {
+                FechaPedido = fecha,
+                Total = subtotal,
+                ClienteIdCliente = cliente.IdCliente,
+                ClientePersonaCedula = cliente.PersonaCedula,
+                ClientePersonaTipoPersonaIdtipoPersona =
+                    cliente.PersonaTipoPersonaIdtipoPersona
+            };
+
+            _context.Pedidos.Add(pedido);
+
+            producto.CantidadDisponible -= Cantidad;
+
+            var detalle = new PedidoDetalle
+            {
+                Cantidad = Cantidad,
+                PrecioUnitario = producto.Precio,
+                SubTotal = subtotal,
+                ProductoIdProducto = producto.IdProducto,
+                ProductoBodegaIdBodega = producto.BodegaIdBodega,
+                Pedido = pedido
+            };
+
+            _context.PedidoDetalles.Add(detalle);
+
+            await _context.SaveChangesAsync();
+
+            var estadoPendiente = await _context.EstadoPedidos
+                .FirstOrDefaultAsync(e =>
+                    e.DescripcionEstado == "Pendiente");
+
+            if (estadoPendiente == null)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "No existe el estado Pendiente en la base de datos.");
+
+                return RedirectToAction(nameof(PedidosRastreo));
+            }
+
+            var rastreo = new RastreoPedido
+            {
+                FechaActualizacion = fecha,
+                EstadoPedidoIdEstadoPedido = estadoPendiente.IdEstadoPedido,
+                PedidoIdPedido = pedido.IdPedido,
+                PedidoClienteIdCliente = pedido.ClienteIdCliente,
+                PedidoClientePersonaCedula = pedido.ClientePersonaCedula,
+                PedidoClientePersonaTipoPersonaIdtipoPersona =
+                    pedido.ClientePersonaTipoPersonaIdtipoPersona
+            };
+
+            _context.RastreoPedidos.Add(rastreo);
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "El pedido se registró correctamente.";
+            return RedirectToAction(nameof(PedidosRastreo));
+        }
+
+
         public async Task<IActionResult> CatalogosTipos()
         {
             string? usuario = HttpContext.Session.GetString("Usuario");
@@ -498,6 +753,59 @@ namespace EcomConnect.Controllers
                 .ToListAsync();
 
             return View();
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActualizarEstadoPedido(
+            int PedidoIdPedido,
+            int PedidoClienteIdCliente,
+            string PedidoClientePersonaCedula,
+            int PedidoClientePersonaTipoPersonaIdtipoPersona,
+            int EstadoPedidoIdEstadoPedido)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var pedido = await _context.Pedidos.FirstOrDefaultAsync(p =>
+                p.IdPedido == PedidoIdPedido &&
+                p.ClienteIdCliente == PedidoClienteIdCliente &&
+                p.ClientePersonaCedula == PedidoClientePersonaCedula &&
+                p.ClientePersonaTipoPersonaIdtipoPersona ==
+                    PedidoClientePersonaTipoPersonaIdtipoPersona);
+
+            var estado = await _context.EstadoPedidos
+                .FirstOrDefaultAsync(e =>
+                    e.IdEstadoPedido == EstadoPedidoIdEstadoPedido);
+
+            if (pedido == null || estado == null)
+            {
+                TempData["Error"] = "No se encontró el pedido o el estado seleccionado.";
+                return RedirectToAction(nameof(PedidosRastreo));
+            }
+
+            var rastreo = new RastreoPedido
+            {
+                FechaActualizacion = DateOnly.FromDateTime(DateTime.Today),
+                EstadoPedidoIdEstadoPedido = estado.IdEstadoPedido,
+                PedidoIdPedido = pedido.IdPedido,
+                PedidoClienteIdCliente = pedido.ClienteIdCliente,
+                PedidoClientePersonaCedula = pedido.ClientePersonaCedula,
+                PedidoClientePersonaTipoPersonaIdtipoPersona =
+                    pedido.ClientePersonaTipoPersonaIdtipoPersona
+            };
+
+            _context.RastreoPedidos.Add(rastreo);
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "El estado del pedido se actualizó correctamente.";
+
+            return RedirectToAction(nameof(PedidosRastreo));
         }
 
 

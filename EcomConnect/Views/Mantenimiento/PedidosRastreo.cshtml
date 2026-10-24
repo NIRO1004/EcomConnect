@@ -10,12 +10,39 @@
     var detalles = ViewBag.DetallesPedido as List<PedidoDetalle> ?? new List<PedidoDetalle>();
 }
 
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Mensaje"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+
 <div class="container py-4">
     <h2>Pedidos y rastreo</h2>
+
+    <div class="d-flex flex-wrap gap-2 mt-3 mb-4">
+        <a asp-controller="Mantenimiento"
+           asp-action="CrearPedido"
+           class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i>
+            Registrar pedido
+        </a>
+
+    </div>
+
     <p class="text-muted">
         Consulta de pedidos, detalles y seguimiento registrados en EcomConnect.
     </p>
 
+    
     <h4 class="mt-4">Pedidos registrados</h4>
     <div class="table-responsive mb-4">
         <table class="table table-striped table-bordered align-middle">
@@ -25,28 +52,100 @@
                     <th>Fecha</th>
                     <th>Total</th>
                     <th>ID del cliente</th>
+                    <th>Estado actual</th>
+                    <th>Actualizar estado</th>
                 </tr>
             </thead>
             <tbody>
                 @if (pedidos.Count == 0)
                 {
-                    <tr><td colspan="4">No hay pedidos registrados.</td></tr>
+                    <tr>
+                        <td colspan="6">No hay pedidos registrados.</td>
+                    </tr>
                 }
                 else
                 {
                     @foreach (var pedido in pedidos)
                     {
+                        var ultimoRastreo = rastreos
+                            .Where(r =>
+                                r.PedidoIdPedido == pedido.IdPedido &&
+                                r.PedidoClienteIdCliente == pedido.ClienteIdCliente &&
+                                r.PedidoClientePersonaCedula == pedido.ClientePersonaCedula &&
+                                r.PedidoClientePersonaTipoPersonaIdtipoPersona ==
+                                    pedido.ClientePersonaTipoPersonaIdtipoPersona)
+                            .OrderByDescending(r => r.FechaActualizacion)
+                            .ThenByDescending(r => r.IdRastreo)
+                            .FirstOrDefault();
+
                         <tr>
                             <td>@pedido.IdPedido</td>
                             <td>@pedido.FechaPedido.ToString("dd/MM/yyyy")</td>
-                            <td>@pedido.Total.ToString("N2")</td>
+                            <td>₡@pedido.Total.ToString("N2")</td>
                             <td>@pedido.ClienteIdCliente</td>
+                            <td>
+                                @if (ultimoRastreo != null)
+                                {
+                                    var estadoActual = estados.FirstOrDefault(
+                                        e => e.IdEstadoPedido ==
+                                            ultimoRastreo.EstadoPedidoIdEstadoPedido);
+
+                                    @(estadoActual?.DescripcionEstado ?? "Desconocido")
+                                }
+                                else
+                                {
+                                    <span>Sin estado</span>
+                                }
+                            </td>
+                            <td>
+                                <form asp-controller="Mantenimiento"
+                                      asp-action="ActualizarEstadoPedido"
+                                      method="post"
+                                      class="d-flex flex-column gap-2">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="PedidoIdPedido"
+                                           value="@pedido.IdPedido" />
+
+                                    <input type="hidden"
+                                           name="PedidoClienteIdCliente"
+                                           value="@pedido.ClienteIdCliente" />
+
+                                    <input type="hidden"
+                                           name="PedidoClientePersonaCedula"
+                                           value="@pedido.ClientePersonaCedula" />
+
+                                    <input type="hidden"
+                                           name="PedidoClientePersonaTipoPersonaIdtipoPersona"
+                                           value="@pedido.ClientePersonaTipoPersonaIdtipoPersona" />
+
+                                    <select name="EstadoPedidoIdEstadoPedido"
+                                            class="form-select form-select-sm"
+                                            required>
+                                        <option value="">Seleccione un estado</option>
+                                        @foreach (var estado in estados)
+                                        {
+                                            <option value="@estado.IdEstadoPedido">
+                                                @estado.DescripcionEstado
+                                            </option>
+                                        }
+                                    </select>
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-primary">
+                                        Actualizar
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     }
                 }
             </tbody>
         </table>
     </div>
+
 
     <h4 class="mt-4">Rastreo de pedidos</h4>
     <div class="table-responsive mb-4">
@@ -145,6 +244,6 @@
     <a asp-controller="Mantenimiento"
        asp-action="Index"
        class="btn btn-outline-primary">
-        =Volver a mantenimiento
+        Volver a mantenimiento
     </a>
 </div>
