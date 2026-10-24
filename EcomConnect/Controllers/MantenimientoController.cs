@@ -554,6 +554,235 @@ namespace EcomConnect.Controllers
 
 
         [HttpGet]
+        public async Task<IActionResult> CrearQuejaSolicitud()
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/CrearQuejaSolicitud" });
+            }
+
+            ViewBag.Clientes = await _context.Clientes
+                .AsNoTracking()
+                .Include(c => c.Persona)
+                .OrderBy(c => c.Persona.Nombre)
+                .ToListAsync();
+
+            if (!((List<Cliente>)ViewBag.Clientes).Any())
+            {
+                TempData["MensajeError"] =
+                    "Debe existir al menos un cliente registrado.";
+
+                return RedirectToAction(nameof(PreferenciasSolicitudes));
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearQuejaSolicitud(
+            string Tipo,
+            string DescripcionQuejasolicitud,
+            string ClienteClave)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = "/Mantenimiento/CrearQuejaSolicitud" });
+            }
+
+            Tipo = Tipo?.Trim() ?? "";
+            DescripcionQuejasolicitud =
+                DescripcionQuejasolicitud?.Trim() ?? "";
+
+            int idCliente = 0;
+            int tipoPersonaId = 0;
+            string cedula = "";
+
+            if (Tipo != "Queja" && Tipo != "Solicitud")
+            {
+                ModelState.AddModelError(
+                    nameof(Tipo),
+                    "Seleccione un tipo de caso válido.");
+            }
+
+            if (string.IsNullOrWhiteSpace(DescripcionQuejasolicitud))
+            {
+                ModelState.AddModelError(
+                    nameof(DescripcionQuejasolicitud),
+                    "La descripción es obligatoria.");
+            }
+
+            var partes = (ClienteClave ?? "").Split('|');
+
+            if (partes.Length != 3 ||
+                !int.TryParse(partes[0], out idCliente) ||
+                string.IsNullOrWhiteSpace(partes[1]) ||
+                !int.TryParse(partes[2], out tipoPersonaId))
+            {
+                ModelState.AddModelError(
+                    nameof(ClienteClave),
+                    "Seleccione un cliente válido.");
+            }
+            else
+            {
+                cedula = partes[1];
+
+                bool clienteExiste = await _context.Clientes.AnyAsync(c =>
+                    c.IdCliente == idCliente &&
+                    c.PersonaCedula == cedula &&
+                    c.PersonaTipoPersonaIdtipoPersona == tipoPersonaId);
+
+                if (!clienteExiste)
+                {
+                    ModelState.AddModelError(
+                        nameof(ClienteClave),
+                        "El cliente seleccionado no existe.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Clientes = await _context.Clientes
+                    .AsNoTracking()
+                    .Include(c => c.Persona)
+                    .OrderBy(c => c.Persona.Nombre)
+                    .ToListAsync();
+
+                return View();
+            }
+
+            var caso = new QuejaSolicitud
+            {
+                Tipo = Tipo,
+                DescripcionQuejasolicitud = DescripcionQuejasolicitud,
+                FechaRegistro = DateTime.Now,
+                Estado = System.Text.Encoding.UTF8.GetBytes("P"),
+                Respuesta = "Pendiente de respuesta",
+                ClienteIdCliente = idCliente,
+                ClientePersonaCedula = cedula,
+                ClientePersonaTipoPersonaIdtipoPersona = tipoPersonaId
+            };
+
+            try
+            {
+                _context.QuejaSolicituds.Add(caso);
+                await _context.SaveChangesAsync();
+
+                TempData["Mensaje"] =
+                    "La queja o solicitud se registró correctamente.";
+
+                return RedirectToAction(nameof(PreferenciasSolicitudes));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(
+                    "",
+                    "No se pudo registrar el caso. Verifique los datos e inténtelo nuevamente.");
+
+                ViewBag.Clientes = await _context.Clientes
+                    .AsNoTracking()
+                    .Include(c => c.Persona)
+                    .OrderBy(c => c.Persona.Nombre)
+                    .ToListAsync();
+
+                return View();
+            }
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> EditarQuejaSolicitud(int id)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = $"/Mantenimiento/EditarQuejaSolicitud/{id}" });
+            }
+
+            var solicitud = await _context.QuejaSolicituds
+                .AsNoTracking()
+                .FirstOrDefaultAsync(q => q.IdQuejaSolicitud == id);
+
+            if (solicitud == null)
+            {
+                TempData["MensajeError"] = "No se encontró la queja o solicitud.";
+                return RedirectToAction(nameof(PreferenciasSolicitudes));
+            }
+
+            return View(solicitud);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditarQuejaSolicitud(
+            int id,
+            string Estado,
+            string Respuesta)
+        {
+            string? usuario = HttpContext.Session.GetString("Usuario");
+
+            if (string.IsNullOrEmpty(usuario))
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account",
+                    new { returnUrl = $"/Mantenimiento/EditarQuejaSolicitud/{id}" });
+            }
+
+            if (Estado != "P" && Estado != "E" && Estado != "R")
+            {
+                ModelState.AddModelError(
+                    nameof(Estado), "Seleccione un estado válido.");
+            }
+
+            Respuesta = Respuesta?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(Respuesta))
+            {
+                ModelState.AddModelError(
+                    nameof(Respuesta), "La respuesta es obligatoria.");
+            }
+
+            var solicitud = await _context.QuejaSolicituds
+                .FirstOrDefaultAsync(q => q.IdQuejaSolicitud == id);
+
+            if (solicitud == null)
+            {
+                TempData["MensajeError"] = "No se encontró la queja o solicitud.";
+                return RedirectToAction(nameof(PreferenciasSolicitudes));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(solicitud);
+            }
+
+            solicitud.Estado = System.Text.Encoding.UTF8.GetBytes(Estado);
+            solicitud.Respuesta = Respuesta;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Mensaje"] = "El seguimiento se actualizó correctamente.";
+
+            return RedirectToAction(nameof(PreferenciasSolicitudes));
+        }
+
+
+        [HttpGet]
         public async Task<IActionResult> HistorialCliente(
             int idCliente, string cedula, int tipoPersonaId)
         {

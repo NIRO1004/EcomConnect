@@ -1,0 +1,124 @@
+﻿@model EcomConnect.Models.QuejaSolicitud
+
+@{
+    ViewData["Title"] = "Seguimiento de queja o solicitud";
+
+    var estadoActual = System.Text.Encoding.UTF8
+        .GetString(Model.Estado).Trim();
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #0284c7;">
+                Seguimiento de queja o solicitud
+            </h2>
+            <p class="text-muted mb-0">
+                Consulte el caso y actualice su estado y respuesta.
+            </p>
+        </div>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="PreferenciasSolicitudes"
+           class="btn btn-outline-secondary">
+            Volver
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Número de caso</label>
+                <input class="form-control"
+                       value="@Model.IdQuejaSolicitud"
+                       readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Tipo de caso</label>
+                <input class="form-control"
+                       value="@Model.Tipo"
+                       readonly />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control"
+                          rows="4"
+                          readonly>@Model.DescripcionQuejasolicitud</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fecha de registro</label>
+                <input class="form-control"
+                       value="@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")"
+                       readonly />
+            </div>
+
+            <form asp-action="EditarQuejaSolicitud"
+                  asp-route-id="@Model.IdQuejaSolicitud"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label for="Estado" class="form-label">
+                        Estado del caso
+                    </label>
+
+                    <select id="Estado"
+                            name="Estado"
+                            class="form-select"
+                            required>
+
+                        <option value="P"
+                                selected="@(estadoActual == "P")">
+                            Pendiente
+                        </option>
+
+                        <option value="E"
+                                selected="@(estadoActual == "E")">
+                            En proceso
+                        </option>
+
+                        <option value="R"
+                                selected="@(estadoActual == "R")">
+                            Resuelto
+                        </option>
+
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="Respuesta" class="form-label">
+                        Respuesta al cliente
+                    </label>
+
+                    <textarea id="Respuesta"
+                              name="Respuesta"
+                              class="form-control"
+                              rows="4"
+                              maxlength="2000"
+                              required>@Model.Respuesta</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i>
+                    Guardar seguimiento
+                </button>
+
+                <a asp-action="PreferenciasSolicitudes"
+                   class="btn btn-outline-secondary ms-2">
+                    Cancelar
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+</div>

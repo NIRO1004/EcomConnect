@@ -1,0 +1,96 @@
+﻿@using EcomConnect.Models
+
+@{
+    ViewData["Title"] = "Registrar queja o solicitud";
+    var clientes = ViewBag.Clientes as List<Cliente>
+        ?? new List<Cliente>();
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+        <div>
+            <h2 class="fw-bold" style="color: #0284c7;">
+                Registrar queja o solicitud
+            </h2>
+            <p class="text-muted mb-0">
+                Registre un caso y asígnele el cliente correspondiente.
+            </p>
+        </div>
+
+        <a asp-controller="Mantenimiento"
+           asp-action="PreferenciasSolicitudes"
+           class="btn btn-outline-secondary">
+            Volver
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form asp-action="CrearQuejaSolicitud" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="All"
+                     class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label for="Tipo" class="form-label">
+                        Tipo de caso
+                    </label>
+
+                    <select id="Tipo" name="Tipo"
+                            class="form-select" required>
+                        <option value="">Seleccione el tipo</option>
+                        <option value="Queja">Queja</option>
+                        <option value="Solicitud">Solicitud</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="DescripcionQuejasolicitud"
+                           class="form-label">
+                        Descripción del caso
+                    </label>
+
+                    <textarea id="DescripcionQuejasolicitud"
+                              name="DescripcionQuejasolicitud"
+                              class="form-control"
+                              rows="4"
+                              maxlength="2000"
+                              placeholder="Describa la queja o solicitud..."
+                              required></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label for="ClienteClave" class="form-label">
+                        Cliente
+                    </label>
+
+                    <select id="ClienteClave" name="ClienteClave"
+                            class="form-select" required>
+                        <option value="">Seleccione un cliente</option>
+
+                        @foreach (var cliente in clientes)
+                        {
+                            <option value="@($"{cliente.IdCliente}|{cliente.PersonaCedula}|{cliente.PersonaTipoPersonaIdtipoPersona}")">
+                                @cliente.Persona.Nombre
+                                @cliente.Persona.Apellido1
+                                @cliente.Persona.Apellido2
+                                — Cédula: @cliente.PersonaCedula
+                                — Cliente #@cliente.IdCliente
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Registrar caso
+                </button>
+
+                <a asp-action="PreferenciasSolicitudes"
+                   class="btn btn-outline-secondary ms-2">
+                    Cancelar
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
