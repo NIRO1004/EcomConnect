@@ -16,11 +16,7 @@
             </p>
         </div>
 
-        <a asp-controller="Mantenimiento"
-           asp-action="Index"
-           class="btn btn-outline-secondary">
-            Volver a mantenimiento
-        </a>
+        
     </div>
 
     @if (TempData["Mensaje"] != null)
@@ -108,7 +104,14 @@
                         </tbody>
                     </table>
                 </div>
+
             }
         </div>
     </div>
+
+    <a asp-controller="Mantenimiento"
+       asp-action="Index"
+       class="btn btn-outline-primary">
+        Volver a mantenimiento
+    </a>
 </div>

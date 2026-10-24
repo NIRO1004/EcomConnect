@@ -34,22 +34,19 @@
 
         @if (Context.Session.GetString("Usuario") != null)
         {
-            <form asp-controller="Account"
-                  asp-action="Logout"
-                  method="post"
-                  class="d-inline">
-
-                <button type="submit" class="logout-link">
-                    Cerrar sesión →
-                </button>
-            </form>
-        }
-        else
-        {
             <a class="logout-link"
                asp-controller="Account"
                asp-action="Login">
-                Iniciar sesión →
+                Cerrar sesión
+            </a>
+        }
+        else
+        {
+
+            <a class="logout-link"
+               asp-controller="Account"
+               asp-action="Login">
+                Iniciar sesión
             </a>
         }
 
@@ -71,7 +68,7 @@
                     <a class="nav-link"
                        asp-controller="Mantenimiento"
                        asp-action="Index">
-                        Mantenimiento →
+                        Mantenimiento
                     </a>
                 }
                 <!--
